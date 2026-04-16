@@ -3,7 +3,7 @@
 
 """
 简单的 HTTP 服务脚本，用于测试 Jenkins 部署
-访问 http://服务器IP:8081 即可看到效果
+访问 http://服务器IP:8080 即可看到效果
 """
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -99,7 +99,7 @@ class TestHandler(BaseHTTPRequestHandler):
         """自定义日志输出"""
         print(f"[{datetime.datetime.now()}] {args[0]}")
 
-def run_server(port=8081):
+def run_server(port=8080):
     """启动服务器"""
     server_address = ('', port)
     httpd = HTTPServer(server_address, TestHandler)
@@ -116,5 +116,5 @@ def run_server(port=8081):
 
 if __name__ == '__main__':
     # 可以通过命令行参数指定端口
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8081
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
     run_server(port)
