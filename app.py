@@ -56,7 +56,7 @@ class TestHandler(BaseHTTPRequestHandler):
             
             # 获取 Git 版本信息（如果存在）
             git_commit = "第4次测试"
-            git_branch = "123456"
+            git_branch = "要成功"
             try:
                 with open('.git/HEAD', 'r') as f:
                     head_content = f.read().strip()
