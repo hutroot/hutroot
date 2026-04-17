@@ -55,7 +55,7 @@ class TestHandler(BaseHTTPRequestHandler):
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
             # 获取 Git 版本信息（如果存在）
-            git_commit = "第3次测试"
+            git_commit = "第4次测试"
             git_branch = "123456"
             try:
                 with open('.git/HEAD', 'r') as f:

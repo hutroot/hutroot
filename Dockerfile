@@ -1,5 +1,5 @@
 # 使用官方 Python 运行时作为基础镜像
-FROM python:3.11-slim
+FROM python:3.11-slim2
 
 # 设置工作目录
 WORKDIR /app
@@ -8,11 +8,6 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     TZ=Asia/Shanghai
-
-# 安装系统依赖（如果需要）
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
 
 # 复制依赖文件
 COPY requirements.txt .
