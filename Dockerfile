@@ -27,8 +27,8 @@ COPY app.py .
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# 暴露端口（与 app.py 中的端口一致，默认 8081）
-EXPOSE 8081
+# 暴露端口（与 app.py 中的端口一致，默认 8080）
+EXPOSE 8080
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

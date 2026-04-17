@@ -2,130 +2,115 @@ pipeline {
     agent any
     
     environment {
-        // 镜像配置
-        IMAGE_NAME = 'spider-test'
-        IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
-        
-        // Docker 配置（如需推送到镜像仓库，取消注释）
-        // DOCKER_REGISTRY = 'your-registry.com'
-        // DOCKER_CRED = 'docker-registry-credentials'
+        REMOTE_USER = 'root'
+        REMOTE_HOST = '192.168.1.56'
+        REMOTE_PATH = '/home/myapp_build'
+        CONTAINER_NAME = 'myapp'
+        IMAGE_NAME = 'myapp:latest'
+        HOST_PORT = '8080'
+        CONTAINER_PORT = '8080'
     }
-    
+
     stages {
-        // 1. 拉取代码
-        stage('Checkout') {
+        stage('拉取代码') {
             steps {
-                checkout scm
-                echo "✅ 代码拉取成功，分支: ${env.BRANCH_NAME}"
-                echo "📝 Commit: ${env.GIT_COMMIT}"
+                echo '正在拉取代码'
+                git url: 'https://github.com/hutroot/hutroot/', branch: 'main'
+                echo '代码拉取完成'
             }
         }
-        
-        // 2. 查看代码文件（调试用）
-        stage('List Files') {
+
+        stage('传输代码到远程机器') {
             steps {
-                sh 'ls -la'
-                sh 'cat app.py | head -20 || echo "app.py 不存在"'
-            }
-        }
-        
-        // 3. 构建 Docker 镜像
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    echo "🔨 开始构建镜像: ${IMAGE_NAME}:${IMAGE_TAG}"
-                    docker.build("${IMAGE_NAME}:${IMAGE_TAG}", ".")
-                }
-            }
-        }
-        
-        // 4. 运行测试（验证容器能否正常启动）
-        stage('Test Container') {
-            steps {
-                script {
-                    echo "🧪 启动测试容器..."
-                    sh """
-                        docker stop ${IMAGE_NAME}-test || true
-                        docker rm ${IMAGE_NAME}-test || true
-                        docker run -d --name ${IMAGE_NAME}-test -p 8081:8080 ${IMAGE_NAME}:${IMAGE_TAG}
-                        sleep 3
-                        curl -f http://localhost:8081/ || exit 1
-                        echo "✅ 容器测试通过"
-                    """
-                }
-            }
-            post {
-                always {
-                    // 清理测试容器
-                    sh """
-                        docker stop ${IMAGE_NAME}-test || true
-                        docker rm ${IMAGE_NAME}-test || true
-                    """
-                }
-            }
-        }
-        
-        // 5. 部署到生产环境
-        stage('Deploy') {
-            steps {
-                script {
-                    echo "🚀 开始部署..."
-                    
-                    // 停止并删除旧容器
-                    sh """
-                        docker stop ${IMAGE_NAME} || true
-                        docker rm ${IMAGE_NAME} || true
-                    """
-                    
-                    // 启动新容器
-                    sh """
-                        docker run -d \
-                            --name ${IMAGE_NAME} \
-                            --restart unless-stopped \
-                            -p 8080:8080 \
-                            ${IMAGE_NAME}:${IMAGE_TAG}
-                    """
-                    
-                    // 等待服务启动并验证
-                    sh """
-                        sleep 3
-                        curl -f http://localhost:8081/ || exit 1
-                        echo "✅ 部署成功！"
-                    """
-                }
-            }
-        }
-    }
-    
-    post {
-        // 构建成功
-        success {
-            echo """
-            ╔════════════════════════════════════════════════════╗
-            ║  🎉 构建与部署成功！                               ║
-            ╠════════════════════════════════════════════════════╣
-            ║  镜像: ${IMAGE_NAME}:${IMAGE_TAG}                  ║
-            ║  访问: http://<服务器IP>:8081                       ║
-            ╚════════════════════════════════════════════════════╝
-            """
-        }
-        
-        // 构建失败
-        failure {
-            echo """
-            ❌ 构建失败！
-            📋 请检查控制台输出定位问题
-            """
-        }
-        
-        // 无论成功失败，清理旧镜像（保留最近5个）
-        always {
-            script {
+                echo "传输代码到 ${REMOTE_HOST}:${REMOTE_PATH}"
                 sh """
-                    docker image prune -f --filter "until=24h" || true
-                    echo "🧹 清理完成"
+                    ssh ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ${REMOTE_PATH}"
+                    tar czf - --exclude='.git' . | ssh ${REMOTE_USER}@${REMOTE_HOST} "tar xzf - -C ${REMOTE_PATH}"
+                    echo "✓ 代码传输完成"
                 """
             }
+        }
+
+        stage('远程构建和部署') {
+            steps {
+                sh """
+                    ssh ${REMOTE_USER}@${REMOTE_HOST} << 'EOF'
+                        cd ${REMOTE_PATH}
+
+                        echo "=== 开始构建和部署流程 ==="
+                        
+                        # 1. 检查并停止正在运行的容器
+                        echo "1. 检查并停止正在运行的容器..."
+                        if docker ps -a | grep -q ${CONTAINER_NAME}; then
+                            echo "发现正在运行的容器 ${CONTAINER_NAME}，正在停止..."
+                            docker stop ${CONTAINER_NAME} || echo "停止容器失败或容器未运行"
+                            docker rm ${CONTAINER_NAME} || echo "删除容器失败或容器不存在"
+                            echo "✓ 旧容器清理完成"
+                        else
+                            echo "未发现正在运行的容器 ${CONTAINER_NAME}"
+                        fi
+
+                        # 2. 清理旧镜像（可选，避免磁盘空间不足）
+                        echo "2. 清理旧镜像..."
+                        OLD_IMAGES=\$(docker images ${IMAGE_NAME} -q | tail -n +2)
+                        if [ -n "\$OLD_IMAGES" ]; then
+                            echo "发现旧镜像，正在清理..."
+                            echo \$OLD_IMAGES | xargs -r docker rmi || echo "清理旧镜像失败或不存在"
+                        fi
+
+                        # 3. 构建新镜像
+                        echo "3. 开始构建 Docker 镜像..."
+                        docker build --no-cache -t ${IMAGE_NAME} .
+
+                        # 4. 启动新容器
+                        echo "4. 启动新容器..."
+                        docker run -d \\
+                            --name ${CONTAINER_NAME} \\
+                            --restart unless-stopped \\
+                            -p ${HOST_PORT}:${CONTAINER_PORT} \\
+                            ${IMAGE_NAME}
+
+                        # 5. 清理无用镜像和容器
+                        echo "5. 清理无用资源..."
+                        docker container prune -f
+                        docker image prune -f
+
+                        echo "✓ 部署完成"
+EOF
+                """
+            }
+        }
+
+        stage('清理远程临时文件') {
+            steps {
+                echo "清理远程临时文件"
+                sh """
+                    ssh ${REMOTE_USER}@${REMOTE_HOST} "rm -rf ${REMOTE_PATH}"
+                """
+            }
+        }
+
+        stage('健康检查') {
+            steps {
+                echo "等待服务启动..."
+                sleep time: 10, unit: 'SECONDS'
+
+                sh """
+                    ssh ${REMOTE_USER}@${REMOTE_HOST} "docker ps | grep ${CONTAINER_NAME} && echo '✓ 容器运行正常'"
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '🎉 部署成功！'
+        }
+        failure {
+            echo '❌ 部署失败！'
+            sh """
+                ssh ${REMOTE_USER}@${REMOTE_HOST} "docker logs --tail 50 ${CONTAINER_NAME}" || true
+            """
         }
     }
 }
