@@ -27,8 +27,8 @@ class TestHandler(BaseHTTPRequestHandler):
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
             # 获取 Git 版本信息（如果存在）
-            git_commit = "Unknown"
-            git_branch = "Unknown"
+            git_commit = "第二次测试"
+            git_branch = "123"
             try:
                 with open('.git/HEAD', 'r') as f:
                     head_content = f.read().strip()
