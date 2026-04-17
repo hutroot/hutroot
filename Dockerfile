@@ -23,11 +23,11 @@ RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
 # 暴露端口（与 app.py 中的端口一致，默认 8080）
-EXPOSE 8080
+EXPOSE 80
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/ || exit 1
+    CMD curl -f http://localhost:80/ || exit 1
 
 # 运行应用
 CMD ["python", "app.py"]

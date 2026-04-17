@@ -128,7 +128,7 @@ class TestHandler(BaseHTTPRequestHandler):
         """自定义日志输出"""
         print(f"[{datetime.datetime.now()}] {args[0]}")
 
-def run_server(port=8080):
+def run_server(port=80):
     """启动服务器"""
     server_address = ('', port)
     httpd = HTTPServer(server_address, TestHandler)
@@ -145,5 +145,5 @@ def run_server(port=8080):
 
 if __name__ == '__main__':
     # 可以通过命令行参数指定端口
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 80
     run_server(port)
