@@ -26,7 +26,7 @@ pipeline {
         stage('构建部署') {
             steps {
                 sh """
-                    ssh ${REMOTE_USER}@${REMOTE_HOST} << 'EOF'
+                    ssh root@${REMOTE_HOST} << 'EOF'
                         cd ${REMOTE_PATH}
                         
                         # 清理旧容器
