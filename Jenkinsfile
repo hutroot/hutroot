@@ -70,6 +70,11 @@ pipeline {
                             -p ${HOST_PORT}:${CONTAINER_PORT} \\
                             ${IMAGE_NAME}
 
+                        # 等待容器启动后，强制更新部署时间
+                        echo "强制更新部署时间..."
+                        sleep 5
+                        docker exec ${CONTAINER_NAME} sh -c 'echo "{\\\"deployment_time\\\": \\\"'\$(date +"%Y-%m-%d %H:%M:%S")\"'\\\"}" > deployment_info.json' || echo "更新部署时间失败"
+
                         # 5. 清理无用镜像和容器
                         echo "5. 清理无用资源..."
                         docker container prune -f

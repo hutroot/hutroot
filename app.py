@@ -10,9 +10,37 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import datetime
 import os
 import sys
+import json
 
 class TestHandler(BaseHTTPRequestHandler):
     """处理 HTTP 请求"""
+    
+    def __init__(self, *args, **kwargs):
+        # 读取部署时间信息
+        self.deployment_time = self._get_deployment_time()
+        super().__init__(*args, **kwargs)
+    
+    def _get_deployment_time(self):
+        """获取部署时间，如果不存在则创建"""
+        deployment_file = 'deployment_info.json'
+        
+        if os.path.exists(deployment_file):
+            try:
+                with open(deployment_file, 'r') as f:
+                    data = json.load(f)
+                    return data.get('deployment_time', '未知')
+            except:
+                pass
+        
+        # 如果文件不存在或读取失败，创建新的部署时间
+        deployment_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        try:
+            with open(deployment_file, 'w') as f:
+                json.dump({'deployment_time': deployment_time}, f)
+        except:
+            pass
+            
+        return deployment_time
     
     def do_GET(self):
         """处理 GET 请求"""
@@ -76,9 +104,10 @@ class TestHandler(BaseHTTPRequestHandler):
                 <div class="container">
                     <h1>✅ Jenkins 部署成功！</h1>
                     <div class="info">
-                        <p><strong>部署时间：</strong> {current_time}</p>
+                        <p><strong>部署时间：</strong> {self.deployment_time}</p>
                         <p><strong>服务器主机名：</strong> {hostname}</p>
                         <p><strong>进程 PID：</strong> {pid}</p>
+                        <p><strong>当前时间：</strong> {current_time}</p>
                         <p><strong>Git 分支：</strong> {git_branch}</p>
                         <p><strong>Git Commit：</strong> {git_commit}</p>
                         <p><strong>Python 版本：</strong> {sys.version.split()[0]}</p>
