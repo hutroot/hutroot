@@ -1,2 +1,2 @@
-用于jenjins测试的python项目
+用于Jenkins测试的python项目
 
