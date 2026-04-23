@@ -472,6 +472,12 @@ class TestHandler(BaseHTTPRequestHandler):
                 <i class="fas fa-database"></i> ES:9200
               </div>
               <div class="info-item">
+                <i class="fas fa-chart-bar"></i> Zabbix:8081
+              </div>
+              <div class="info-item">
+                <i class="fas fa-cogs"></i> Jenkins:8080
+              </div>
+              <div class="info-item">
                 <i class="fas fa-shield-virus"></i> <span class="ip-tag">360平台: 192.168.1.54</span>
               </div>
               <div class="info-item">
