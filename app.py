@@ -360,6 +360,22 @@ class TestHandler(BaseHTTPRequestHandler):
                 "port": "192.168.1.54 : 443 / Web",
                 "url": "https://192.168.1.54/dist/#/login",
                 "button_text": "进入管控平台"
+            },
+            {
+                "icon": "fas fa-chart-bar",
+                "title": "Zabbix 监控平台",
+                "description": "服务器监控 · 性能指标 · 告警管理 · 可视化仪表板",
+                "port": "192.168.1.60 : 8081",
+                "url": "http://192.168.1.60:8081/",
+                "button_text": "进入监控平台"
+            },
+            {
+                "icon": "fas fa-cogs",
+                "title": "Jenkins CI/CD",
+                "description": "持续集成 · 自动化部署 · 流水线构建 · DevOps 工具链",
+                "port": "192.168.1.60 : 8080",
+                "url": "http://192.168.1.60:8080",
+                "button_text": "进入 Jenkins"
             }
         ]
 
