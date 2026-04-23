@@ -394,7 +394,8 @@ class TestHandler(BaseHTTPRequestHandler):
               { name: "ELK Kibana", ip: "192.168.1.60", port: 5601, url: "http://192.168.1.60:5601/app/home" },
               { name: "智能家居平台", ip: "192.168.1.60", port: 8123, url: "http://192.168.1.60:8123" },
               { name: "Elasticsearch API", ip: "192.168.1.60", port: 9200, url: "http://192.168.1.60:9200" },
-              { name: "360 管控平台", ip: "192.168.1.54", port: "80/443", url: "http://192.168.1.54" }
+              { name: "360 管控平台", ip: "192.168.1.54", port: "80/443", url: "http://192.168.1.54" },
+              {name: "zabbix监控平台", ip: "192.168.1.60", port: "8081", url: "http://192.168.1.60:8081"}
             ];
 
             console.log("%c🛡️ 统一服务管控中枢 · 已加载全部服务入口", "color: #2dd4ff; font-size: 14px; font-weight: bold; background: #0a1428; padding: 2px 6px; border-radius: 8px;");
